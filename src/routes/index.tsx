@@ -1,23 +1,51 @@
 import { createFileRoute } from "@tanstack/react-router";
+import {
+  ScrollProgressBar,
+  SmoothScrollProvider,
+} from "@/components/importnow/MotionPrimitives";
+import { Navbar } from "@/components/importnow/Navbar";
+import { HeroSection } from "@/components/importnow/HeroSection";
+import { ServicesAndJourney } from "@/components/importnow/ServicesAndJourney";
+import { HubsAndLicence } from "@/components/importnow/HubsAndLicence";
+import { TripsAndDeliveries } from "@/components/importnow/TripsAndDeliveries";
+import { StoriesGuidesFaq } from "@/components/importnow/StoriesGuidesFaq";
+import { ContactAndFooter } from "@/components/importnow/ContactAndFooter";
 
-// The home route ships no og:image, so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "ImportNow — Import Directly from China to India" },
+      {
+        name: "description",
+        content:
+          "Sourcing, factory inspection, shipping and customs handled end to end by a team with its own registered company in Shanghai.",
+      },
+      { property: "og:title", content: "ImportNow — Import Directly from China to India" },
+      {
+        property: "og:description",
+        content:
+          "Sourcing, factory inspection, shipping and customs handled end to end by a team with its own registered company in Shanghai.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <SmoothScrollProvider>
+      <ScrollProgressBar />
+      <Navbar />
+      <main>
+        <HeroSection />
+        <ServicesAndJourney />
+        <HubsAndLicence />
+        <TripsAndDeliveries />
+        <StoriesGuidesFaq />
+        <ContactAndFooter />
+      </main>
+    </SmoothScrollProvider>
   );
 }
