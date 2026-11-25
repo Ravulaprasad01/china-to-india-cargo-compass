@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Anchor, CheckCircle2, Pause, Play, Ship } from "lucide-react";
+import { Anchor, CheckCircle2, ChevronLeft, ChevronRight, Pause, Play, Ship } from "lucide-react";
 import { JOURNEY_STAGES, SERVICES } from "@/data/importnow";
 import { Reveal } from "./MotionPrimitives";
+import { ShipmentScene } from "./ShipmentScene";
 
-const MAP_NODES = [
-  { x: 406, y: 74, label: "Yiwu / Foshan", dy: -12 },
-  { x: 368, y: 112, label: "Factory Floor", dy: 16 },
-  { x: 444, y: 132, label: "Shanghai Port", dy: 18 },
-  { x: 300, y: 238, label: "Malacca Strait", dy: 20 },
-  { x: 152, y: 194, label: "Chennai Port", dy: 18 },
-  { x: 102, y: 148, label: "Hyderabad", dy: -12 },
+const TRACK_LABELS = [
+  "Factory",
+  "Inspect",
+  "Shanghai",
+  "At Sea",
+  "Customs",
+  "Your Door",
 ] as const;
 
 export function ServicesAndJourney() {
@@ -21,12 +22,15 @@ export function ServicesAndJourney() {
     if (!autoPlay) return;
     const id = window.setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % JOURNEY_STAGES.length);
-    }, 3600);
+    }, 4600);
     return () => window.clearInterval(id);
   }, [autoPlay]);
 
   const activeStage = JOURNEY_STAGES[activeIndex] ?? JOURNEY_STAGES[0];
-  const activeNode = MAP_NODES[activeIndex] ?? MAP_NODES[0];
+  const goStep = (next: number) => {
+    setAutoPlay(false);
+    setActiveIndex((next + JOURNEY_STAGES.length) % JOURNEY_STAGES.length);
+  };
 
   return (
     <>
@@ -141,119 +145,62 @@ export function ServicesAndJourney() {
 
             <div className="lg:sticky lg:top-28 lg:col-span-7">
               <div className="overflow-hidden rounded-3xl border border-maritime-border bg-maritime-foreground/[0.04] p-6 sm:p-8">
-                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-maritime-border pb-5">
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-4 border-b border-maritime-border pb-4">
                   <div className="flex items-center gap-2.5">
                     <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-primary" />
                     <span className="font-mono text-xs uppercase tracking-widest text-maritime-muted">
                       Live shipment view
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 font-mono text-xs">
-                    <span className="text-maritime-muted">
-                      Origin: <strong className="text-maritime-foreground">Shanghai</strong>
-                    </span>
-                    <span className="text-maritime-muted">
-                      Destination: <strong className="text-maritime-foreground">Chennai / India</strong>
-                    </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      aria-label="Previous stage"
+                      onClick={() => goStep(activeIndex - 1)}
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-maritime-border text-maritime-muted transition-colors hover:border-primary hover:text-maritime-foreground"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Next stage"
+                      onClick={() => goStep(activeIndex + 1)}
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-maritime-border text-maritime-muted transition-colors hover:border-primary hover:text-maritime-foreground"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
 
-                <div className="relative mt-6 aspect-[16/10] w-full overflow-hidden rounded-2xl border border-maritime-border/70 bg-maritime">
-                  <svg
-                    viewBox="0 0 540 310"
-                    className="h-full w-full"
-                    role="img"
-                    aria-label="Animated maritime shipping route from Shanghai, China to India"
-                  >
-                    <defs>
-                      <pattern id="sea-grid" width="36" height="36" patternUnits="userSpaceOnUse">
-                        <path
-                          d="M 36 0 L 0 0 0 36"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeOpacity="0.07"
-                          strokeWidth="1"
-                        />
-                      </pattern>
-                    </defs>
-                    <rect width="540" height="310" fill="url(#sea-grid)" />
+                {activeStage && <ShipmentScene step={activeStage.step} />}
 
-                    {/* Stylized Asia-India-China coastal silhouette bands */}
-                    <path
-                      d="M 35 60 Q 120 40 190 95 L 155 215 Q 115 205 90 150 L 35 125 Z"
-                      fill="currentColor"
-                      fillOpacity="0.08"
+                {/* Synchronized China -> India progress rail */}
+                <div className="mt-5 px-1">
+                  <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-maritime-border">
+                    <motion.div
+                      className="h-full rounded-full bg-primary"
+                      animate={{ width: `${((activeIndex + 1) / JOURNEY_STAGES.length) * 100}%` }}
+                      transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
                     />
-                    <path
-                      d="M 325 32 Q 435 28 490 92 L 455 170 Q 385 162 340 115 Z"
-                      fill="currentColor"
-                      fillOpacity="0.08"
-                    />
-                    <text x="64" y="92" fill="currentColor" fillOpacity="0.35" fontSize="10" fontFamily="monospace">
-                      INDIA
-                    </text>
-                    <text x="454" y="54" fill="currentColor" fillOpacity="0.35" fontSize="10" fontFamily="monospace">
-                      CHINA
-                    </text>
-
-                    {/* Base sea lane */}
-                    <path
-                      d="M 438 126 C 425 210, 358 258, 300 238 C 242 218, 200 232, 152 194 C 132 178, 118 162, 102 148"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeOpacity="0.2"
-                      strokeWidth="2"
-                      strokeDasharray="5 6"
-                    />
-
-                    {/* Animated active route progress */}
-                    <motion.path
-                      d="M 438 126 C 425 210, 358 258, 300 238 C 242 218, 200 232, 152 194 C 132 178, 118 162, 102 148"
-                      fill="none"
-                      stroke="var(--primary)"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      initial={{ pathLength: 0.08 }}
-                      animate={{ pathLength: activeStage?.progress ?? 0.1 }}
-                      transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-                    />
-
-                    {/* Port waypoints */}
-                    {MAP_NODES.map((node, i) => (
-                      <g key={node.label}>
-                        <circle
-                          cx={node.x}
-                          cy={node.y}
-                          r={i === activeIndex ? 6 : 3.5}
-                          fill={i <= activeIndex ? "var(--primary)" : "currentColor"}
-                          fillOpacity={i <= activeIndex ? 1 : 0.35}
-                        />
-                        <text
-                          x={node.x}
-                          y={node.y + node.dy}
-                          textAnchor="middle"
-                          fill="currentColor"
-                          fillOpacity={i === activeIndex ? 0.95 : 0.45}
-                          fontSize="10"
-                          fontFamily="monospace"
-                        >
-                          {node.label}
-                        </text>
-                      </g>
+                  </div>
+                  <div className="mt-2.5 grid grid-cols-6 gap-1">
+                    {TRACK_LABELS.map((label, i) => (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => goStep(i)}
+                        className={`cursor-pointer truncate text-center font-mono text-[10px] transition-colors ${
+                          i === activeIndex
+                            ? "font-bold text-primary"
+                            : i < activeIndex
+                              ? "text-maritime-foreground/80"
+                              : "text-maritime-muted/60 hover:text-maritime-muted"
+                        }`}
+                      >
+                        {label}
+                      </button>
                     ))}
-
-                    {/* Pulsing active vessel beacon */}
-                    <motion.circle
-                      animate={{ cx: activeNode.x, cy: activeNode.y, r: [10, 20, 10], opacity: [0.55, 0.1, 0.55] }}
-                      transition={{
-                        cx: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
-                        cy: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
-                        r: { duration: 2.2, repeat: Infinity },
-                        opacity: { duration: 2.2, repeat: Infinity },
-                      }}
-                      fill="var(--primary)"
-                    />
-                  </svg>
+                  </div>
                 </div>
 
                 <AnimatePresence mode="wait">
